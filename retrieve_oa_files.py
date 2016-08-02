@@ -71,10 +71,13 @@ def copyFile(old,new):
             shutil.copyfile(old,new)
             logging.info("-- File: "+fname+" written to directory: "+fpath)
             completeappids.append(currentapp)
+            return True
         else:
             logging.info("-- File: "+fname+" already exists")
+            return False
     except IOError as e:
          logging.error('-- Copy File I/O error({0}): {1}'.format(e.errno,e.strerror))
+         return False
 
 #write list of app ID's to specified log file
 def writeLogs(logfname,idlist):
@@ -401,6 +404,7 @@ if __name__ == '__main__':
             logging.info("-- Processing series: "+series)
             getAppIDs(os.path.join(scriptpath, 'files', 'PAIR', pubidfname), series)
             makeDirectory(os.path.join(scriptpath, 'extractedfiles', series))
+            numoffiles = 0
             for x in appids:
                 try:
                     currentapp = x
@@ -420,7 +424,8 @@ if __name__ == '__main__':
                         if filenotfound == False:
                             #for each file, run copy
                             for k, v in dirfiles.items():
-                                copyFile(k, v)
+                                if copyFile(k, v):
+                                    logging.info('-- {} - Complete processing for file'.format(numoffiles))
                         else:
                             logging.info('-- One of the files for app ID: '+currentapp+' not found')
                             nofileappids.append(currentapp)
