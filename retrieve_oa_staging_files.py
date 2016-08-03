@@ -150,6 +150,8 @@ def parseXML(fname):
         for item in root.xpath('//uscom:P', namespaces=namespaces):
             textdata += getText(item)+'\n'
         doccontent['textdata'] = textdata
+        #truncate textdata for download so that it does not exceed Excel cell character limit of 32,767
+        doccontent['textdata_frmt'] = texdata[:32000]
         return True
     except IOError as e:
         logging.error('XML Parse file: '+fname+' I/O error({0}): {1}'.format(e.errno,e.strerror))
@@ -189,7 +191,9 @@ def getPALMData(fileappid):
             values = values.to_dict('list')
             doccontent['appl_id'] = str(values['APPL_ID'][0])
             doccontent['file_dt'] = convertToUTC(str(values['FILE_DT'][0]), '%d-%b-%y')
+            doccontent['file_dt_frmt'] = datetime.strptime(str(values['FILE_DT'][0]), '%m/%d/%Y')
             doccontent['effective_filing_dt'] = convertToUTC(str(values['EFFECTIVE_FILING_DT'][0]), '%d-%b-%y')
+            doccontent['effective_filing_dt_frmt'] = datetime.strptime(str(values['EFFECTIVE_FILING_DT'][0]), '%m/%d/%Y')
             doccontent['inv_subj_matter_ty'] = str(values['INV_SUBJ_MATTER_TY'][0])
             doccontent['appl_ty'] = str(values['APPL_TY'][0])
             doccontent['dn_examiner_no'] = str(values['DN_EXAMINER_NO'][0]).strip()
@@ -201,12 +205,16 @@ def getPALMData(fileappid):
             doccontent['atty_dkt_no'] = str(values['ATTY_DKT_NO'][0])
             doccontent['dn_nsrd_curr_loc_cd'] = str(values['DN_NSRD_CURR_LOC_CD'][0]).strip()
             doccontent['dn_nsrd_curr_loc_dt'] = convertToUTC(str(values['DN_NSRD_CURR_LOC_DT'][0]), '%d-%b-%y')
+            doccontent['dn_nsrd_curr_loc_dt_frmt'] = datetime.strptime(str(values['DN_NSRD_CURR_LOC_DT'][0]), '%m/%d/%Y')
             doccontent['app_status_no'] = str(values['APP_STATUS_NO'][0])
             doccontent['app_status_dt'] = convertToUTC(str(values['APP_STATUS_DT'][0]), '%d-%b-%y')
+            doccontent['app_status_dt_frmt'] = datetime.strptime(str(values['APP_STATUS_DT'][0]), '%m/%d/%Y')
             doccontent['wipo_pub_no'] = str(values['WIPO_PUB_NO'][0])
             doccontent['patent_no'] = str(values['PATENT_NO'][0])
             doccontent['patent_issue_dt'] = convertToUTC(str(values['PATENT_ISSUE_DT'][0]), '%d-%b-%y')
+            doccontent['patent_issue_dt_frmt'] = datetime.strptime(str(values['PATENT_ISSUE_DT'][0]), '%m/%d/%Y')
             doccontent['abandon_dt'] = convertToUTC(str(values['ABANDON_DT'][0]), '%d-%b-%y')
+            doccontent['abandon_dt_frmt'] = datetime.strptime(str(values['ABANDON_DT'][0]), '%m/%d/%Y')
             doccontent['disposal_type'] = str(values['DISPOSAL_TYPE'][0])
             doccontent['se_in'] = str(values['SE_IN'][0])
             doccontent['pct_no'] = str(values['PCT_NO'][0]).strip()
@@ -236,6 +244,7 @@ def getDocDate(appid, ifwnum):
         if len(values.index) == 1:
             values = values.to_dict('list')
             doccontent['doc_date'] = convertToUTC(str(values['Mailroom_Date'][0]), '%Y-%m-%d %H:%M:%S')
+            doccontent['doc_date_frmt'] = datetime.strptime(str(values['Mailroom_Date'][0]), '%m/%d/%Y')
             logging.info('-- Date data written to doccontent dictionary')
             return True
         else:
